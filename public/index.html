@@ -23,7 +23,7 @@
       const height = document.getElementById('height').value;
       const weight = document.getElementById('weight').value;
 
-      const res = await fetch('/calculate-bmi', {
+      const res = await fetch('https://bmi-index-calculator-nine.vercel.app/calculate-bmi', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ height, weight })
