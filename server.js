@@ -1,10 +1,10 @@
-const cors = require('cors');
-app.use(cors());
-
 const express = require('express');
+const cors = require('cors');
 const app = express();
 const PORT = 3000;
 
+// Middleware
+app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
@@ -13,6 +13,7 @@ app.get('/sample-bmi', (req, res) => {
   res.json({ height: 170, weight: 65, bmi: 22.5 });
 });
 
+// POST route to calculate BMI
 app.post('/calculate-bmi', (req, res) => {
   const { height, weight } = req.body;
 
