@@ -37,3 +37,13 @@ button:hover {
     width: 90%;
   }
 }
+
+.record {
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #f1f1f1;
+  border-radius: 8px;
+}
+.record button {
+  margin-left: 10px;
+}

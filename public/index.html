@@ -9,29 +9,103 @@
   <div class="container">
     <h1>BMI Calculator</h1>
     <form id="bmiform">
+      <input type="text" id="name" placeholder="Name" required><br>
       <input type="number" id="height" placeholder="Height (cm)" required><br>
       <input type="number" id="weight" placeholder="Weight (kg)" required><br>
       <button type="submit">Calculate</button>
     </form>
     <p id="result"></p>
+    <h2>BMI Records</h2>
+    <div id="record-list"></div>
   </div>
 
   <script>
-    document.getElementById('bmiform').addEventListener('submit', async (e) => {
+  async function loadRecords() {
+    const res = await fetch('https://bmi-index-calculator.onrender.com/bmi-records');
+    const records = await res.json();
+
+    const recordList = document.getElementById('record-list');
+    recordList.innerHTML = ''; // Clear before adding again
+
+    records.forEach(record => {
+      const div = document.createElement('div');
+      div.classList.add('record');
+
+      div.innerHTML = `
+        <strong>${record.name}</strong> — BMI: ${record.bmi} (${record.category})
+        <button onclick="deleteRecord('${record._id}')">Delete</button>
+        <button onclick="editRecord('${record._id}', '${record.name}', ${record.height}, ${record.weight})">Edit</button>
+      `;
+      recordList.appendChild(div);
+    });
+  }
+
+  async function deleteRecord(id) {
+    await fetch(`https://bmi-index-calculator.onrender.com/bmi-records/${id}`, {
+      method: 'DELETE'
+    });
+    loadRecords(); // Refresh list
+  }
+
+  function editRecord(id, name, height, weight) {
+    document.getElementById('name').value = name;
+    document.getElementById('height').value = height;
+    document.getElementById('weight').value = weight;
+
+    const form = document.getElementById('bmiform');
+    const resultPara = document.getElementById('result');
+
+    form.onsubmit = async function (e) {
       e.preventDefault();
 
-      const height = document.getElementById('height').value;
-      const weight = document.getElementById('weight').value;
+      const updatedName = document.getElementById('name').value;
+      const updatedHeight = document.getElementById('height').value;
+      const updatedWeight = document.getElementById('weight').value;
 
-      const res = await fetch('https://bmi-index-calculator.onrender.com/calculate-bmi', {
-        method: 'POST',
+      const res = await fetch(`https://bmi-index-calculator.onrender.com/bmi-records/${id}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ height, weight })
+        body: JSON.stringify({
+          name: updatedName,
+          height: updatedHeight,
+          weight: updatedWeight
+        })
       });
 
       const data = await res.json();
-      document.getElementById('result').innerText = `Your BMI is ${data.bmi} (${data.category})`;
+      resultPara.innerText = `Updated BMI: ${data.bmi} (${data.category})`;
+
+      form.onsubmit = defaultSubmitHandler; // Reset back to default
+      form.reset();
+      loadRecords();
+    };
+  }
+
+  // Default form submit for creating new BMI record
+  async function defaultSubmitHandler(e) {
+    e.preventDefault();
+
+    const name = document.getElementById('name').value;
+    const height = document.getElementById('height').value;
+    const weight = document.getElementById('weight').value;
+
+    const res = await fetch('https://bmi-index-calculator.onrender.com/calculate-bmi', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, height, weight })
     });
-  </script>
+
+    const data = await res.json();
+    document.getElementById('result').innerText = `Your BMI is ${data.bmi} (${data.category})`;
+    document.getElementById('bmiform').reset();
+    loadRecords();
+  }
+
+  // Attach default submit handler
+  document.getElementById('bmiform').addEventListener('submit', defaultSubmitHandler);
+
+  //  Load records when page loads
+  window.onload = loadRecords;
+</script>
 </body>
 </html>
